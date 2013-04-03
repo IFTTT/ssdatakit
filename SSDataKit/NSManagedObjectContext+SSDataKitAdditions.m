@@ -16,4 +16,22 @@
 	return context;
 }
 
+- (void)saveAndPropagateUpWithCompletion:(void (^)(NSError *))completion
+{
+    NSError *error = nil;
+    if (![self save:&error]) {
+        if (completion) {
+            completion(error);
+        }
+    } else if (self.parentContext) {
+        [self.parentContext performBlock:^{
+            [self.parentContext saveAndPropagateUpWithCompletion:[completion copy]];
+        }];
+    } else {
+        if (completion) {
+            completion(nil);
+        }
+    }
+}
+
 @end

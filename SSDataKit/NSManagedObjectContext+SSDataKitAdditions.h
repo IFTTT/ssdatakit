@@ -13,4 +13,6 @@
 // Creates a new context of the same class and sets its persistent store coordinator to the current one
 - (NSManagedObjectContext *)newManagedObjectContextWithCurrentPersistentStoreCoordinator;
 
+- (void)saveAndPropagateUpWithCompletion:(void(^)(NSError *error))completion;
+
 @end
