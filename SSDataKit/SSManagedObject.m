@@ -48,6 +48,20 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 }
 
 
++ (NSManagedObjectContext *)tempConfinementQueueContext {
+    NSManagedObjectContext *tempConfinementQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSConfinementConcurrencyType];
+    [tempConfinementQueueContext setParentContext:[self mainQueueContext]];
+    return tempConfinementQueueContext;
+}
+
+
++ (NSManagedObjectContext *)tempPrivateQueueContext {
+    NSManagedObjectContext *tempConfinementQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
+    [tempConfinementQueueContext setParentContext:[self mainQueueContext]];
+    return tempConfinementQueueContext;
+}
+
+
 + (NSManagedObjectContext *)mainContext {
 	return [self mainQueueContext];
 }

@@ -34,6 +34,8 @@ Changes saved here are automatically reflected in the `privateQueueContext`.
 + (NSManagedObjectContext *)mainQueueContext;
 + (BOOL)hasMainQueueContext;
 
++ (NSManagedObjectContext *)tempConfinementQueueContext;
++ (NSManagedObjectContext *)tempPrivateQueueContext;
 
 /**
  Synonymous with the `mainQueueContext` methods.
