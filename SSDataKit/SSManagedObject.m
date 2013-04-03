@@ -8,8 +8,6 @@
 
 #import "SSManagedObject.h"
 
-static id __contextSaveObserver = nil;
-static id __contextRefreshObserver = nil;
 static NSManagedObjectContext *__privateQueueContext = nil;
 static NSManagedObjectContext *__mainQueueContext = nil;
 static NSManagedObjectModel *__managedObjectModel = nil;
@@ -26,18 +24,6 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 	if (!__privateQueueContext) {
 		__privateQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
 		[__privateQueueContext setPersistentStoreCoordinator:[self persistentStoreCoordinator]];
-        __contextSaveObserver = [[NSNotificationCenter defaultCenter]
-         addObserverForName:NSManagedObjectContextDidSaveNotification
-         object:nil
-         queue:nil
-         usingBlock:^(NSNotification *note) {
-             NSManagedObjectContext *savingContext = [note object];
-             if ([savingContext parentContext] == [self privateQueueContext]) {
-                 [__privateQueueContext performBlock:^{
-                     [__privateQueueContext save:nil];
-                 }];
-             }
-         }];
 	}
 	return __privateQueueContext;
 }
@@ -52,18 +38,6 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 	if (!__mainQueueContext) {
 		__mainQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
 		[__mainQueueContext setParentContext:[self privateQueueContext]];
-        __contextRefreshObserver = [[NSNotificationCenter defaultCenter]
-                                    addObserverForName:NSManagedObjectContextDidSaveNotification
-                                    object:nil
-                                    queue:nil
-                                    usingBlock:^(NSNotification *note) {
-                                        NSManagedObjectContext *savingContext = [note object];
-                                        if (savingContext == [self privateQueueContext]) {
-                                            [__mainQueueContext performBlock:^{
-                                                [__mainQueueContext mergeChangesFromContextDidSaveNotification:note];
-                                            }];
-                                        }
-                                    }];
 	}
 	return __mainQueueContext;
 }
@@ -185,8 +159,6 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 + (void)resetPersistentStore {
 
 	// unwind old contexts
-	[[NSNotificationCenter defaultCenter] removeObserver:__contextSaveObserver];
-	[[NSNotificationCenter defaultCenter] removeObserver:__contextRefreshObserver];
 	[__mainQueueContext reset];
 	__mainQueueContext = nil;
 	[__privateQueueContext reset];
