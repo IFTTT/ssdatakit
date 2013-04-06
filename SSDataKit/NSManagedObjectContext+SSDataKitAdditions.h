@@ -14,5 +14,6 @@
 - (NSManagedObjectContext *)newManagedObjectContextWithCurrentPersistentStoreCoordinator;
 
 - (void)saveAndPropagateUpWithCompletion:(void(^)(NSError *error))completion;
+- (NSError *)saveAndPropagateUpAndWait;
 
 @end

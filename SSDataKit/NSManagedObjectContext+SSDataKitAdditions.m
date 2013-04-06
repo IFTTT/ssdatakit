@@ -11,9 +11,9 @@
 @implementation NSManagedObjectContext (SSDataKitAdditions)
 
 - (NSManagedObjectContext *)newManagedObjectContextWithCurrentPersistentStoreCoordinator {
-	NSManagedObjectContext *context = [[[self class] alloc] init];
-	context.persistentStoreCoordinator = self.persistentStoreCoordinator;
-	return context;
+    NSManagedObjectContext *context = [[[self class] alloc] init];
+    context.persistentStoreCoordinator = self.persistentStoreCoordinator;
+    return context;
 }
 
 - (void)saveAndPropagateUpWithCompletion:(void (^)(NSError *))completion
@@ -32,6 +32,17 @@
             completion(nil);
         }
     }
+}
+
+- (NSError *)saveAndPropagateUpAndWait
+{
+    __block NSError *error = nil;
+    if ([self save:&error] && self.parentContext) {
+        [self.parentContext performBlockAndWait:^{
+            error = [self.parentContext saveAndPropagateUpAndWait];
+        }];
+    }
+    return error;
 }
 
 @end
