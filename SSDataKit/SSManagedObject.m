@@ -22,8 +22,11 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 
 + (NSManagedObjectContext *)privateQueueContext {
 	if (!__privateQueueContext) {
-		__privateQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
-		[__privateQueueContext setPersistentStoreCoordinator:[self persistentStoreCoordinator]];
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            __privateQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
+            [__privateQueueContext setPersistentStoreCoordinator:[self persistentStoreCoordinator]];
+        });
 	}
 	return __privateQueueContext;
 }
@@ -36,8 +39,11 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 
 + (NSManagedObjectContext *)mainQueueContext {
 	if (!__mainQueueContext) {
-		__mainQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
-		[__mainQueueContext setParentContext:[self privateQueueContext]];
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            __mainQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
+            [__mainQueueContext setParentContext:[self privateQueueContext]];
+        });
 	}
 	return __mainQueueContext;
 }
