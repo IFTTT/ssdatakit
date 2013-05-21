@@ -88,9 +88,8 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 		NSURL *url = [self persistentStoreURL];
 		NSError *error = nil;
 		NSDictionary *storeOptions = [self persistentStoreOptions];
-		[persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:storeOptions error:&error];
 
-		if (error) {
+		if (![persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:storeOptions error:&error]) {
 			// Reset the persistent store
 			if (__automaticallyResetsPersistentStore && error.code == 134130) {
 				[[NSFileManager defaultManager] removeItemAtURL:url error:nil];
