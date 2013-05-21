@@ -8,7 +8,9 @@
 
 #import "SSManagedObject.h"
 
+static dispatch_once_t __privateQueueContextOnceToken;
 static NSManagedObjectContext *__privateQueueContext = nil;
+static dispatch_once_t __mainQueueContextOnceToken;
 static NSManagedObjectContext *__mainQueueContext = nil;
 static NSManagedObjectModel *__managedObjectModel = nil;
 static NSURL *__persistentStoreURL = nil;
@@ -21,13 +23,10 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 #pragma mark - Managing application contexts
 
 + (NSManagedObjectContext *)privateQueueContext {
-	if (!__privateQueueContext) {
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            __privateQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
-            [__privateQueueContext setPersistentStoreCoordinator:[self persistentStoreCoordinator]];
-        });
-	}
+    dispatch_once(&__privateQueueContextOnceToken, ^{
+        __privateQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
+        [__privateQueueContext setPersistentStoreCoordinator:[self persistentStoreCoordinator]];
+    });
 	return __privateQueueContext;
 }
 
@@ -38,13 +37,10 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 
 
 + (NSManagedObjectContext *)mainQueueContext {
-	if (!__mainQueueContext) {
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            __mainQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
-            [__mainQueueContext setParentContext:[self privateQueueContext]];
-        });
-	}
+    dispatch_once(&__mainQueueContextOnceToken, ^{
+        __mainQueueContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
+        [__mainQueueContext setParentContext:[self privateQueueContext]];
+    });
 	return __mainQueueContext;
 }
 
@@ -180,8 +176,10 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 	// unwind old contexts
 	[__mainQueueContext reset];
 	__mainQueueContext = nil;
+    __mainQueueContextOnceToken = 0;
 	[__privateQueueContext reset];
 	__privateQueueContext = nil;
+    __privateQueueContextOnceToken = 0;
 	
 	NSURL *url = [self persistentStoreURL];
 	NSPersistentStoreCoordinator *psc = [SSManagedObject persistentStoreCoordinator];
