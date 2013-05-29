@@ -188,7 +188,9 @@ static NSString *const kURIRepresentationKey = @"URIRepresentation";
 	[__mainQueueContext reset];
 	__mainQueueContext = nil;
     __mainQueueContextOnceToken = 0;
-	[__privateQueueContext reset];
+    [__privateQueueContext performBlockAndWait:^{
+        [__privateQueueContext reset];
+    }];
 	__privateQueueContext = nil;
     __privateQueueContextOnceToken = 0;
 	
